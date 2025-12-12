@@ -1,5 +1,6 @@
 package com.lucab.simple_teleporter.block.entity;
 
+import com.lucab.simple_teleporter.SimpleTeleporterConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.HolderLookup;
@@ -12,6 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,6 +21,7 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Set;
 
 public class TeleportPadBlockEntity extends BlockEntity {
     private GlobalPos destination;
@@ -41,34 +44,70 @@ public class TeleportPadBlockEntity extends BlockEntity {
             return;
         }
 
-        // Check for players on top
+        // Check for entities on top
         // The block collision height is 6 pixels (0.375 blocks)
-        // We check for players in a box just above the collision shape
-        // We shrink the box horizontally to ensure the player is really on the pad and
-        // not just touching it from the side
+        // We check for entities in a box just above the collision shape
+        // We shrink the box horizontally to ensure the entity is really on the pad
         double padHeight = 6.0 / 16.0;
         AABB box = new AABB(pos.getX(), pos.getY() + padHeight, pos.getZ(),
                 pos.getX() + 1, pos.getY(), pos.getZ() + 1);
-        List<ServerPlayer> players = level.getEntitiesOfClass(ServerPlayer.class, box);
+        List<Entity> entities = level.getEntitiesOfClass(Entity.class, box);
 
-        for (ServerPlayer player : players) {
-            if (player.isShiftKeyDown() && cooldown <= 0) {
-                // Teleport
-                teleportPlayer(player);
-                this.cooldown = 10; // Set cooldown to 0.5 seconds
+        for (Entity entity : entities) {
+            if (cooldown > 0)
+                continue;
+
+            if (entity instanceof ServerPlayer player) {
+                if (player.isShiftKeyDown()) {
+                    teleportEntity(player);
+                    this.cooldown = 10;
+                }
+            } else {
+                // Non-player entities teleport immediately
+                teleportEntity(entity);
+                this.cooldown = 10;
             }
         }
     }
 
-    private void teleportPlayer(ServerPlayer player) {
-        ServerLevel targetLevel = player.server.getLevel(destination.dimension());
+    private void teleportEntity(Entity entity) {
+        if (entity.level().isClientSide)
+            return;
+        ServerLevel targetLevel = entity.getServer().getLevel(destination.dimension());
+
         if (targetLevel != null) {
+            if (entity instanceof ServerPlayer player) {
+                int cost;
+                if (player.level().dimension() == destination.dimension()) {
+                    cost = SimpleTeleporterConfig.SAME_DIMENSION_COST.get();
+                } else {
+                    cost = SimpleTeleporterConfig.CROSS_DIMENSION_COST.get();
+                }
+
+                if (!player.isCreative() && player.experienceLevel < cost) {
+                    player.displayClientMessage(net.minecraft.network.chat.Component
+                            .literal("Not enough XP! Need " + cost + " levels.").withColor(0xFF0000), true);
+                    player.level().playSound(null, player.blockPosition(), SoundEvents.VILLAGER_NO, SoundSource.BLOCKS,
+                            1.0F, 1.0F);
+                    return;
+                }
+
+                if (!player.isCreative()) {
+                    player.giveExperienceLevels(-cost);
+                }
+            }
+
             // Play sound at source
-            player.level().playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS,
+            entity.level().playSound(null, entity.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS,
                     1.0F, 1.0F);
 
-            player.teleportTo(targetLevel, destination.pos().getX() + 0.5, destination.pos().getY() + 1,
-                    destination.pos().getZ() + 0.5, player.getYRot(), player.getXRot());
+            if (entity instanceof ServerPlayer player) {
+                player.teleportTo(targetLevel, destination.pos().getX() + 0.5, destination.pos().getY() + 1,
+                        destination.pos().getZ() + 0.5, player.getYRot(), player.getXRot());
+            } else {
+                entity.teleportTo(targetLevel, destination.pos().getX() + 0.5, destination.pos().getY() + 1,
+                        destination.pos().getZ() + 0.5, Set.of(), entity.getYRot(), entity.getXRot());
+            }
 
             // Play sound at destination
             targetLevel.playSound(null, destination.pos(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1.0F,
