@@ -2,6 +2,9 @@ package com.lucab.simple_teleporter;
 
 import org.slf4j.Logger;
 
+import com.lucab.simple_teleporter.block.BlocksRegistry;
+import com.lucab.simple_teleporter.block.entity.BlockEntityRegistry;
+import com.lucab.simple_teleporter.component.DataComponentRegistry;
 import com.lucab.simple_teleporter.creative_tab.SimpleTeleporterTab;
 import com.lucab.simple_teleporter.item.ItemsRegistry;
 import com.mojang.logging.LogUtils;
@@ -22,9 +25,9 @@ public class SimpleTeleporter {
         NeoForge.EVENT_BUS.register(this);
 
         ItemsRegistry.ITEMS_REGISTRY.register(modEventBus);
-        com.lucab.simple_teleporter.block.BlocksRegistry.BLOCKS_REGISTRY.register(modEventBus);
-        com.lucab.simple_teleporter.block.entity.BlockEntityRegistry.BLOCK_ENTITY_TYPES.register(modEventBus);
-        com.lucab.simple_teleporter.component.DataComponentRegistry.DATA_COMPONENT_TYPES.register(modEventBus);
+        BlocksRegistry.BLOCKS_REGISTRY.register(modEventBus);
+        BlockEntityRegistry.BLOCK_ENTITY_TYPES.register(modEventBus);
+        DataComponentRegistry.DATA_COMPONENT_TYPES.register(modEventBus);
 
         SimpleTeleporterTab.CREATIVE_TAB.register(modEventBus);
     }

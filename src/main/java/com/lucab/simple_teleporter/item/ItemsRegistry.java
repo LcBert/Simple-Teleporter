@@ -2,6 +2,7 @@ package com.lucab.simple_teleporter.item;
 
 import com.lucab.simple_teleporter.SimpleTeleporter;
 import com.lucab.simple_teleporter.block.BlocksRegistry;
+import com.lucab.simple_teleporter.item.custom.BindingShard;
 import com.lucab.simple_teleporter.item.custom.BindingTool;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -13,6 +14,9 @@ public class ItemsRegistry {
 
     public static final DeferredItem<Item> BINDING_TOOL = ITEMS_REGISTRY
             .register("binding_tool", BindingTool::new);
+
+    public static final DeferredItem<Item> BINDING_SHARD = ITEMS_REGISTRY
+            .register("binding_shard", BindingShard::new);
 
     public static final DeferredItem<Item> TELEPORT_PAD = ITEMS_REGISTRY.register("teleport_pad",
             () -> new BlockItem(BlocksRegistry.TELEPORT_PAD.get(), new Item.Properties()));

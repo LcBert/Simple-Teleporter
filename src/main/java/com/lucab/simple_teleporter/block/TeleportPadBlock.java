@@ -9,6 +9,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
@@ -85,7 +87,8 @@ public class TeleportPadBlock extends BaseEntityBlock {
         if (level.isClientSide)
             return ItemInteractionResult.SUCCESS;
 
-        if (stack.getItem() == ItemsRegistry.BINDING_TOOL.get()) {
+        if (stack.getItem() == ItemsRegistry.BINDING_TOOL.get()
+                || stack.getItem() == ItemsRegistry.BINDING_SHARD.get()) {
             if (player.isShiftKeyDown()) {
                 return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
             }
@@ -94,13 +97,21 @@ public class TeleportPadBlock extends BaseEntityBlock {
                 BlockEntity blockEntity = level.getBlockEntity(pos);
                 if (blockEntity instanceof TeleportPadBlockEntity teleportPadBlockEntity) {
                     teleportPadBlockEntity.setDestination(globalPos);
+
+                    level.playSound(null, pos, SoundEvents.END_PORTAL_FRAME_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
+
                     player.displayClientMessage(Component.literal("Destination set to: "
                             + globalPos.pos().toShortString() + " in " + globalPos.dimension().location()), true);
+
+                    if (stack.getItem() == ItemsRegistry.BINDING_SHARD.get()) {
+                        stack.shrink(1);
+                    }
+
                     return ItemInteractionResult.SUCCESS;
                 }
             } else {
                 player.displayClientMessage(
-                        Component.literal("Binding Tool has no position saved!").withColor(0xFF0000), true);
+                        Component.literal("Item has no position saved!").withColor(0xFF0000), true);
                 return ItemInteractionResult.FAIL;
             }
         }

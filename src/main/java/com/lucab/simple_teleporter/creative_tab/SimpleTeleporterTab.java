@@ -19,6 +19,7 @@ public class SimpleTeleporterTab {
                     .icon(() -> ItemsRegistry.BINDING_TOOL.get().getDefaultInstance())
                     .displayItems((parameters, output) -> {
                         output.accept(ItemsRegistry.BINDING_TOOL.get());
+                        output.accept(ItemsRegistry.BINDING_SHARD.get());
                         output.accept(ItemsRegistry.TELEPORT_PAD.get());
                     }).build());
 }

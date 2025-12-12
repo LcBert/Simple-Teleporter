@@ -15,9 +15,9 @@ import net.minecraft.world.item.context.UseOnContext;
 
 import java.util.List;
 
-public class BindingTool extends Item {
+public class BindingShard extends Item {
 
-    public BindingTool() {
+    public BindingShard() {
         super(new Item.Properties().stacksTo(1));
     }
 

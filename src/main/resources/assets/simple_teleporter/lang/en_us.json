@@ -1,4 +1,5 @@
 {
     "item.simple_teleporter.binding_tool": "Binding Tool",
+    "item.simple_teleporter.binding_shard": "Binding Shard",
     "block.simple_teleporter.teleport_pad": "Teleport Pad"
 }
